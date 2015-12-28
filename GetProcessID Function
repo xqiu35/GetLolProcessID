@@ -1,0 +1,27 @@
+HANDLE GetLolProcessID()
+{
+	PROCESSENTRY32 entry;
+	entry.dwSize = sizeof(PROCESSENTRY32);
+
+	HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, NULL);
+
+	if (Process32First(snapshot, &entry) == TRUE)
+	{
+		size_t i;
+		const wchar_t* wptr = entry.szExeFile;
+		char* ansi = (char *)malloc(MAX_PATH);
+
+		while (Process32Next(snapshot, &entry) == TRUE)
+		{
+			wcstombs_s(&i, ansi, MAX_PATH, wptr, MAX_PATH);
+
+			if (_stricmp(ansi, "LolClient.exe") == 0)
+			{
+				//cout << "Found" << endl;
+				HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, entry.th32ProcessID);
+				free(ansi);
+				return hProcess;
+			}
+		}
+	}
+}
